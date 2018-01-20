@@ -17,7 +17,9 @@ from itertools import permutations
 
 initial_symbol = 'S'
 
-
+########################################################################################################################
+# 2017, Dr. Michael Moortgat, Utrecht University
+########################################################################################################################
 #
 # Dyck generation
 #
@@ -46,6 +48,9 @@ def dyck(k, n):
     return [sigma*n] if n < 2 else sum([dshuffle(sigma, w) for w in dyck(k, n-1)], [])
 
 
+########################################################################################################################
+# 2017, Orestis Melkonian & Konstantinos Kogkalidis, Utrecht University
+########################################################################################################################
 def rand_dyck(n):
     val = {
         'a': n,
@@ -145,15 +150,15 @@ class Grammar(object):
                       .replace('(1, 1)', 'w').replace(' [] ', '').replace('"', ''))
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Check your D3 grammar.')
+def main():
+    parser = argparse.ArgumentParser(description='Grammar utilities for multidimensional Dyck languages.')
     parser.add_argument('-n', type=int, help='number of "abc" occurences', nargs='?')
     parser.add_argument('-w', type=str, help='single word to check', nargs='?')
     parser.add_argument('-ws', type=str, help='file containing words to check', nargs='?')
     parser.add_argument('-p', type=str, help='single parse of a word', nargs='?')
     parser.add_argument('-minp', type=str, help='show minimal parse of a word', nargs='?')
     parser.add_argument('-ps', type=str, help='multiple parses of a word', nargs='?')
-    parser.add_argument('-g', type=str, help='grammar to use', default='automatic_rule_inference', nargs='?')
+    parser.add_argument('-g', type=str, help='grammar to use', default='triple_insertion')
     parser.add_argument('-i', type=str, help='initial symbol to use', default='S', nargs='?')
     parser.add_argument('--rules', help='print all rules', action='store_true')
     parser.add_argument('--serialize', help='serialize grammar to file', action='store_true')
@@ -219,3 +224,6 @@ if __name__ == "__main__":
     # End time
     if args.time:
         print('Time elapsed: {} seconds'.format(time.time() - start))
+
+if __name__ == "__main__":
+    main()

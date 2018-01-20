@@ -1,9 +1,9 @@
-To run:
+# Usage
 ```bash
 > python dyck.py -h
 usage: dyck.py [-h] [-n [N]] [-w [W]] [-ws [WS]] [-p [P]] [-minp [MINP]]
-               [-ps [PS]] [-g [G]] [-i [I]] [--rules] [--check] [--gen]
-               [--range RANGE] [--time] [--rand]
+               [-ps [PS]] [-g [G]] [-i [I]] [--rules] [--serialize] [--check]
+               [--gen] [--range RANGE] [--time] [--rand]
 
 Check your D3 grammar.
 
@@ -18,6 +18,7 @@ optional arguments:
   -g [G]         grammar to use
   -i [I]         initial symbol to use
   --rules        print all rules
+  --serialize    serialize grammar to file
   --check        check soundness
   --gen          generate dyck words
   --range RANGE  search in given percentage range
