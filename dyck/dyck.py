@@ -111,6 +111,7 @@ class Grammar(object):
         ws = dyck(3, n)
         l = len(ws)
         start, end = map(lambda p: int(ceil(l * (p/100))), range)
+        ws = ws[start:end]
         counters = []
         if not os.path.exists('stats'):
             os.makedirs('stats')
@@ -118,7 +119,7 @@ class Grammar(object):
             f.write('Rule size: {}'.format(len(self.grammar)))
             f.write('\nChecking {} to {}'.format(start, end))
             c = 1
-            for i, w in enumerate(ws[start:end]):
+            for i, w in enumerate(ws):
                 sys.stdout.write("\r{0:.2f}%".format(float(i) / float(len(ws)) * 100.0))
                 sys.stdout.flush()
                 if not self.parser.chart_parse(list(w)):
