@@ -1,6 +1,6 @@
 from functools import partial
-from dyck import Grammar
-from grammar_utils import *
+from ..dyck import Grammar
+from ..grammar_utils import *
 
 states = {
     # 0 Symbol

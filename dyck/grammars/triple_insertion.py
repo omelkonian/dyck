@@ -1,5 +1,5 @@
-from dyck import Grammar
-from grammar_utils import *
+from ..dyck import Grammar
+from ..grammar_utils import *
 
 triple_insertion = Grammar([
     (S, [W], [[x, y]]),

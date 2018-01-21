@@ -12,7 +12,7 @@ setup(
     name='dyck',
     description='Meta-grammar utilities for multi-dimensional Dyck languages.',
     entry_points = { "console_scripts": ['dyck = dyck.dyck:main'] },
-    version = '0.2.0',
+    version = '0.3.0',
     author='Orestis Melkonian, Konstantinos Kogkalidis',
     author_email='melkon.or@gmail.com, konstantinos@riseup.net',
     url='http://github.com/omelkonian/dyck',
@@ -22,5 +22,5 @@ setup(
     python_requires='<3',
     install_requires=[
         'numpy==1.14.0',
-    ],
+    ]
 )

@@ -1,5 +1,5 @@
-from dyck import Grammar
-from grammar_utils import *
+from ..dyck import Grammar
+from ..grammar_utils import *
 
 
 all_states = [W, 'A-', 'A+', 'B-', 'B+', 'C-', 'C+']

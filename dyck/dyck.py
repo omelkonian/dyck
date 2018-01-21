@@ -1,19 +1,17 @@
 import importlib
-
-import numpy
+import random
+import os
 import pickle
-from math import ceil
-from os.path import isfile
-
-from MCFParser import *
-from grammars.grammar_utils import *
-
 import time
 import argparse
-from pprint import pformat
 import re
+from math import ceil
+from os.path import isfile
+from pprint import pformat
 from itertools import permutations
 
+from MCFParser import *
+from .grammar_utils import *
 
 initial_symbol = 'S'
 
@@ -62,7 +60,7 @@ def rand_dyck(n):
         choices = [k for k, v in val.items() if v > 0]
         if not choices:
             break
-        choice = numpy.random.choice(choices)
+        choice = choices[random.randint(0, len(choices) - 1)]
         ret += choice
         val[choice] -= 1
         if choice == 'a':
@@ -114,6 +112,8 @@ class Grammar(object):
         l = len(ws)
         start, end = map(lambda p: int(ceil(l * (p/100))), range)
         counters = []
+        if not os.path.exists('stats'):
+            os.makedirs('stats')
         with open('stats/{}_{}.stats'.format(grammar_id, n), 'wb') as f:
             f.write('Rule size: {}'.format(len(self.grammar)))
             f.write('\nChecking {} to {}'.format(start, end))
@@ -174,7 +174,7 @@ def main():
 
     # Load grammar
     g = pickle.load(open('serialized_grammars/{}'.format(args.g), 'r')) \
-        if '.grammar' in args.g else getattr(importlib.import_module('grammars.{}'.format(args.g)), args.g)
+        if '.grammar' in args.g else getattr(importlib.import_module('.grammars.{}'.format(args.g), package='dyck'), args.g)
 
     # Start time
     start = time.time()
