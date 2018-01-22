@@ -27,17 +27,10 @@ tuple_to_char = {
     (2, 3): 'u',
     (3, 3): 'v',
 }
-for key, value in tuple_to_char.items():
-    globals().update({value: key})
+globals().update({value: key for key, value in tuple_to_char.items()})
 
-a, b, c, S, W = 'abcSW'
+a, b, c = 'abc'
 e = []
-A, A_, B, B_, C, C_ = 'A', 'A-', 'B', 'B-', 'C', 'C-'
-AB, AC, BA, CA, BC, CB, AA, BB, CC = 'AB', 'AC', 'BA', 'CA', 'BC', 'CB', 'AA', 'BB', 'CC'
-A_B_, A_C_, B_A_, C_A_, B_C_, C_B_, A_A_, B_B_, C_C_ = 'A-B-', 'A-C-', 'B-A-', 'C-A-', 'B-C-', 'C-B-', 'A-A-', 'B-B-', 'C-C-'
-AC_, C_A, A_A, AA_, CC_, CA_, A_C, BA_, C_B, B_C, AB_, BB_, BC_ = 'AC-', 'C-A', 'A-A', 'AA-', 'CC-', 'CA-', 'A-C', 'BA-', 'C-B', 'B-C', 'AB-', 'BB_', 'BC_'
-all_singles = [A, A_, B, B_, C, C_]
-all_doubles = [AA, AA_, AB, AB_, AC, AC_, BA_, BB, BB_, BC, BC_, CC, CC_, A_A_, A_B_, A_C_, B_B_, B_C_, C_C_]
 
 
 ########################################################################################################################
@@ -136,6 +129,48 @@ def translate(word, **symmetries):
 
 
 ########################################################################################################################
+# DSL
+########################################################################################################################
+def strip(s):
+    return s.replace(' ', '')
+
+
+def parse(rule):
+    def resolve(var):
+        if isinstance(var, str):
+            var = strip(var)
+        else:
+            return map(resolve, var)
+        return globals().get(var, var)
+    if '<-' in rule:
+        conclusion, premises = rule.split('<-')
+        return map(resolve, (conclusion, resolve(strip(premises).split(','))))
+    else:
+        return resolve(rule), e
+
+
+def r(rule, orders):
+    conclusion, premises = parse(rule)
+    return conclusion, premises, list(orders)
+
+
+def O(rule, orders, splits=None, **kwargs):
+    if splits is None:
+        max_index = max(sum([map(lambda e: e[1] if isinstance(e, tuple) else 0, order) for order in orders], []))
+        splits = max(max_index - 1, 1)
+    conclusion, premises = parse(rule)
+    return all_o(conclusion, premises, orders, splits=splits, **kwargs)
+
+
+def forall(domain, rule_func):
+    ret = []
+    for K in domain:
+        k = [key for key, value in locals().items() if value is K][0]
+        globals().update({k: locals()[k]})
+        ret.append(rule_func(K))
+    return ret
+
+########################################################################################################################
 # ARIS: Automatic Rule Inference System
 ########################################################################################################################
 def all_state_tuples(states):
@@ -173,19 +208,6 @@ def all_state_tuples4(states):
                         (D, A, B, C), (D, A, C, B), (D, B, A, C), (D, B, C, A), (D, C, A, B), (D, C, B, A),
                     ]]):
                         yield (A, B, C, D)
-
-
-# def all_state_pairs3():
-#     cur = []
-#     for L in states:
-#         for R in states:
-#             for C in states:
-#                 # Exclude X-
-#                 if any(map(lambda t: '-' in states[t], [L, R, C])):
-#                     continue
-#                 if all(map(lambda t: t not in cur, [(L, R, C), (R, L, C), (R, C, L), (C, L, R), (C, R, L)])):
-#                     cur.append((L, C, R))
-#                     yield (L, C, R)
 
 
 def eliminate((l, r)):

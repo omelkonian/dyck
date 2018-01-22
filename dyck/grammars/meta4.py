@@ -2,43 +2,28 @@ from ..dyck import Grammar
 from ..grammar_utils import *
 
 
-all_states = [W, 'A-', 'A+', 'B-', 'B+', 'C-', 'C+']
+all_states = ['W', 'A-', 'A+', 'B-', 'B+', 'C-', 'C+']
 meta4 = Grammar([
     # TOP
-    (S, [W], [[x, y]]),
-
-    # =============
-    # Meta-rules
-    # =============
-
+    ('S', ['W'], [(x, y)]),
     # Base
-    all_o(W, e, [[a, b, c]]),
-    all_o('A-', e, [[b, c]]),
-    all_o('B-', e, [[a, c]]),
-    all_o('C-', e, [[a, b]]),
-    all_o('A+', e, [[a]]),
-    all_o('B+', e, [[b]]),
-    all_o('C+', e, [[c]]),
-    [all_o(K, [K, W], [[x, y], [z, w]]) for K in all_states],
-
-    # =============
-    # Meta-rule combinations
-    # =============
-
-    # A+
-    all_o('C-', ['A+', 'B+'], [[x, y, z, w]]),
-    all_o('B-', ['A+', 'C+'], [[x, y, z, w]]),
-    all_o(W, ['A+', 'A-'], [[x, y, z, w]]),
-    # B+
-    all_o('A-', ['B+', 'C+'], [[x, y, z, w]]),
-    # C+
-    # A-
-    # B-
-    all_o('C+', ['B-', 'A-'], [[x, y, z, w]]),
-    # C-
-    all_o(W, ['C-', 'C+'], [[x, y, z, w]]),
-    all_o('B+', ['C-', 'A-'], [[x, y, z, w]]),
-    all_o('A+', ['C-', 'B-'], [[x, y, z, w]]),
-
-    [all_o(K, [K, 'A+', 'B+', 'C+'], [[x, y], [z, w, k, l, m, n]]) for K in all_states]
+    O('W', {(a, b, c)}),
+    O('A-', {(b, c)}),
+    O('B-', {(a, c)}),
+    O('C-', {(a, b)}),
+    O('A+', {(a,)}),
+    O('B+', {(b,)}),
+    O('C+', {(c,)}),
+    # Combination
+    [O('K <- K, W', {(x, y), (z, w)}) for K in all_states],
+    O('C- <- A+, B+', {(x, y, z, w)}),
+    O('B- <- A+, C+', {(x, y, z, w)}),
+    O('W <- A+, A-', {(x, y, z, w)}),
+    O('A- <- B+, C+', {(x, y, z, w)}),
+    O('C+ <- B-, A-', {(x, y, z, w)}),
+    O('W <- C-, C+', {(x, y, z, w)}),
+    O('B+ <- C-, A-', {(x, y, z, w)}),
+    O('A+ <- C-, B-', {(x, y, z, w)}),
+    # Meta 3-ins
+    [O('K <- K, A+, B+, C+', {(x, y), (z, w, k, l, m, n)}) for K in all_states]
 ])

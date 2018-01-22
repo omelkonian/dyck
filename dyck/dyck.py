@@ -115,7 +115,7 @@ class Grammar(object):
         counters = []
         if not os.path.exists('stats'):
             os.makedirs('stats')
-        with open('stats/{}_{}.stats'.format(grammar_id, n), 'wb') as f:
+        with open('stats/{}_{}({}-{}\%).stats'.format(grammar_id, n, range[0], range[1]), 'wb') as f:
             f.write('Rule size: {}'.format(len(self.grammar)))
             f.write('\nChecking {} to {}'.format(start, end))
             c = 1
@@ -131,7 +131,6 @@ class Grammar(object):
             f.write('\n-------------------- COUNTERS --------------------')
             for counter in counters:
                 f.write('\n{}'.format(counter))
-
 
     def test_soundness(self, n_range=range(1, 10)):
         for n in n_range:
@@ -171,6 +170,7 @@ def main():
     args = parser.parse_args()
 
     # Set initial symbol
+    global initial_symbol
     initial_symbol = args.i
 
     # Load grammar
@@ -225,6 +225,7 @@ def main():
     # End time
     if args.time:
         print('Time elapsed: {} seconds'.format(time.time() - start))
+
 
 if __name__ == "__main__":
     main()
