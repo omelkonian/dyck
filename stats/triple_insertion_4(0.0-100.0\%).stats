@@ -1,0 +1,13 @@
+Rule size: 65
+Checking 0 to 462
+Result: 8 out of 462
+Time elapsed: 8.69839191437 seconds
+-------------------- COUNTERS --------------------
+aabbacbaccbc
+abaacbbcacbc
+abacabbaccbc
+abaacbbaccbc
+aabbacacbbcc
+aabbaaccbbcc
+abaacbacbbcc
+aaabbacbbccc

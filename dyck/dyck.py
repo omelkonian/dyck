@@ -107,30 +107,39 @@ class Grammar(object):
                 l, min_parse = cur_l, p
         print('{}\n'.format(min_parse))
 
-    def test_n(self, n, range=(0.0, 100.0), grammar_id='', start_time=None):
+    def test_n(self, n, range=(0.0, 100.0), grammar_id='', start_time=None, stats=False):
         ws = dyck(3, n)
         l = len(ws)
         start, end = map(lambda p: int(ceil(l * (p/100))), range)
         ws = ws[start:end]
         counters = []
-        if not os.path.exists('stats'):
+        if stats and not os.path.exists('stats'):
             os.makedirs('stats')
-        with open('stats/{}_{}({}-{}\%).stats'.format(grammar_id, n, range[0], range[1]), 'wb') as f:
-            f.write('Rule size: {}'.format(len(self.grammar)))
-            f.write('\nChecking {} to {}'.format(start, end))
-            c = 1
-            for i, w in enumerate(ws):
-                sys.stdout.write("\r{0:.2f}%".format(float(i) / float(len(ws)) * 100.0))
-                sys.stdout.flush()
-                if not self.parser.chart_parse(list(w)):
-                    counters.append(w)
-                    c += 1
-            f.write('\nResult: {0} out of {1}'.format(c - 1, len(ws)))
-            if start_time:
-                f.write('\nTime elapsed: {} seconds'.format(time.time() - start_time))
-            f.write('\n-------------------- COUNTERS --------------------')
-            for counter in counters:
-                f.write('\n{}'.format(counter))
+
+        f = open('stats/{}_{}({}-{}\%).stats'.format(grammar_id, n, range[0], range[1]), 'wb') \
+            if stats else sys.stdout
+
+        f.write('Rule size: {}\n'.format(len(self.grammar)))
+        f.write('Checking {} to {}\n'.format(start, end))
+        if not stats:
+            f.flush()
+        c = 1
+        for i, w in enumerate(ws):
+            sys.stdout.write("\r{0:.2f}%".format(float(i) / float(len(ws)) * 100.0))
+            sys.stdout.flush()
+            if not self.parser.chart_parse(list(w)):
+                counters.append(w)
+                c += 1
+        sys.stdout.write('\n')
+        f.write('Result: {0} out of {1}\n'.format(c - 1, len(ws)))
+        if start_time:
+            f.write('Time elapsed: {} seconds\n'.format(time.time() - start_time))
+        f.write('\n-------------------- COUNTERS --------------------\n')
+        for counter in counters:
+            f.write('{}\n'.format(counter))
+        if stats:
+            f.close()
+
 
     def test_soundness(self, n_range=range(1, 10)):
         for n in n_range:
@@ -167,6 +176,7 @@ def main():
     parser.add_argument('--range', type=str, default='0-100%', help='search in given percentage range')
     parser.add_argument('--time', help='measure execution time', action='store_true')
     parser.add_argument('--rand', help='generate random Dyck word', action='store_true')
+    parser.add_argument('--stats', help='output in file', action='store_true')
     args = parser.parse_args()
 
     # Set initial symbol
@@ -218,7 +228,8 @@ def main():
             for w in f.read().splitlines():
                 print('{}: {}'.format(w, g.test_parse(w)))
     elif args.n:
-        g.test_n(args.n, range=map(float, args.range.strip('%').split('-')), grammar_id=args.g, start_time=start)
+        g.test_n(args.n, range=map(float, args.range.strip('%').split('-')),
+                 grammar_id=args.g, start_time=start, stats=args.stats)
     else:
         exit(0)
 

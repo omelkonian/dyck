@@ -10,7 +10,6 @@ meta2 = Grammar([
     # =============
     # Base cases
     # =============
-    O('W', {(a, b, c)}),
     O('A-', {(b, c)}),
     O('B-', {(a, c)}),
     O('C-', {(a, b)}),
@@ -21,7 +20,6 @@ meta2 = Grammar([
     # =============
     # Combinations
     # =============
-
     forall(states, lambda K: O('K <- K, W', {(x, y), (z, w)})),
     O('C- <- A+, B+', {(x, y, z, w)}),
     O('B- <- A+, C+', {(x, y, z, w)}),
