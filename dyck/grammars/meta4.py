@@ -3,7 +3,7 @@ from ..grammar_utils import *
 
 
 all_states = ['W', 'A-', 'A+', 'B-', 'B+', 'C-', 'C+']
-meta4 = Grammar([
+g4 = Grammar([
     # TOP
     ('S', ['W'], [(x, y)]),
     # Base

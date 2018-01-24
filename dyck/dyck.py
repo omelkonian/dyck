@@ -82,7 +82,7 @@ class Grammar(object):
                     rules)), [])
         # Construct rule tuples
         self.grammar = [('{}: {} <- {} ({})'.format(i, lhs, rhs, recipe), lhs, rhs, recipe)
-                        for i, (lhs, rhs, recipe) in enumerate(rules)]
+                        for i, (lhs, rhs, recipe) in enumerate(rules, start=1)]
         kwargs.setdefault('topdown', True)
         kwargs.setdefault('filtered', True)
         kwargs.setdefault('nonempty', True)

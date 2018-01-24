@@ -1,9 +1,8 @@
 from ..dyck import Grammar
 from ..grammar_utils import *
 
-
 all_states = ['W', 'A-', 'A+', 'B-', 'B+', 'C-', 'C+']
-meta3 = Grammar([
+g3 = Grammar([
     # TOP
     ('S', ['W'], [(x, y)]),
     # Base
@@ -15,7 +14,8 @@ meta3 = Grammar([
     O('B+', {(b,)}),
     O('C+', {(c,)}),
     # Combination
-    [O('K <- K, W', {(x, y), (z, w)}) for K in all_states],
+    forall(all_states,
+	lambda K: O('K <- K, W', {(x, y), (z, w)})),
     O('C- <- A+, B+', {(x, y, z, w)}),
     O('B- <- A+, C+', {(x, y, z, w)}),
     O('W <- A+, A-', {(x, y, z, w)}),
@@ -25,5 +25,6 @@ meta3 = Grammar([
     O('B+ <- C-, A-', {(x, y, z, w)}),
     O('A+ <- C-, B-', {(x, y, z, w)}),
     # 3-ins
-    [O('K <- K', {(x, y), (a, b, c)}) for K in all_states],
+    forall(all_states,
+	lambda K: O('K <- K', {(x, y), (a, b, c)})),
 ])
