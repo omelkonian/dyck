@@ -159,6 +159,16 @@ class Grammar(object):
                       .replace('(1, 1)', 'w').replace(' [] ', '').replace('"', ''))
 
 
+def all_commas(w, num_commas=1):
+    if num_commas == 1:
+        return [ w[:i] + '$' + w[i:] for i in range(len(w) + 1) ]
+    elif num_commas == 2:
+        return [ w[:i] + '$' + w[i:j] + '$' + w[j:]
+                 for i in range(len(w) + 1)
+                 for j in range(i, len(w) + 1) ]
+    else:
+        raise ValueError("all_commas does not support n > 3")
+
 def main():
     parser = argparse.ArgumentParser(description='Grammar utilities for multidimensional Dyck languages.')
     parser.add_argument('-n', type=int, help='number of "abc" occurences', nargs='?')
@@ -177,6 +187,7 @@ def main():
     parser.add_argument('--time', help='measure execution time', action='store_true')
     parser.add_argument('--rand', help='generate random Dyck word', action='store_true')
     parser.add_argument('--stats', help='output in file', action='store_true')
+    parser.add_argument('--stress', help='stress test given word', action='store_true')
     args = parser.parse_args()
 
     # Set initial symbol
@@ -185,7 +196,8 @@ def main():
 
     # Load grammar
     g = pickle.load(open('serialized_grammars/{}'.format(args.g), 'r')) \
-        if '.grammar' in args.g else getattr(importlib.import_module('.grammars.{}'.format(args.g), package='dyck'), args.g)
+        if '.grammar' in args.g else \
+            getattr(importlib.import_module('.grammars.{}'.format(args.g), package='dyck'), args.g)
 
     # Start time
     start = time.time()
@@ -199,6 +211,19 @@ def main():
                 r = r.replace(str(k), v)
             print(r)
         exit(0)
+
+    # Stress-test
+    if args.stress:
+        for n in range(2, 10):
+            for dw in dyck(3, n):
+                for w in all_commas(dw, num_commas=2):
+                    print('Testing: ', w)
+                    r = g.test_parse(w)
+                    print(r)
+                    if r == False:
+                        exit(0)
+
+
     if args.n is None and 'w' not in vars(args):
         exit(0)
 

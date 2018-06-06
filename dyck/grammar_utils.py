@@ -1,4 +1,4 @@
-from itertools import permutations, combinations
+from itertools import permutations, combinations, combinations_with_replacement
 import numpy as np
 
 
@@ -72,7 +72,7 @@ def ordered_permutations(orders, **symmetries):
 
 def ordered_pairs(orders, splits=1, **symmetries):
     return [tuple([np_arr.tolist() for np_arr in np.split(list(perm), indices)])
-            for indices in combinations(range(len(symbols_from_orders(orders)) + 1), splits)
+            for indices in combinations_with_replacement(range(len(symbols_from_orders(orders)) + 1), splits)
             for perm in ordered_permutations(orders, **symmetries)]
 
 
@@ -156,11 +156,11 @@ def r(rule, orders):
 
 def O(rule, orders, splits=None, **kwargs):
     if splits is None:
+        # TODO fix
         max_index = max(sum([map(lambda e: e[1] if isinstance(e, tuple) else 0, order) for order in orders], []))
         splits = max(max_index - 1, 1)
     conclusion, premises = parse(rule)
     return all_o(conclusion, premises, orders, splits=splits, **kwargs)
-
 
 def forall(domain, rule_func):
     ret = []
