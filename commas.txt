@@ -1,0 +1,10 @@
+$aabbcacbc
+a$abbcacbc
+aa$bbcacbc
+aab$bcacbc
+aabb$cacbc
+aabbc$acbc
+aabbca$cbc
+aabbcac$bc
+aabbcacb$c
+aabbcacbc$

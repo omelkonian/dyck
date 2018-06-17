@@ -193,6 +193,7 @@ def main():
     # Set initial symbol
     global initial_symbol
     initial_symbol = args.i
+    # '$_W' if '$' in getattr(args, 'w', getattr(args, 'p', '')) else
 
     # Load grammar
     g = pickle.load(open('serialized_grammars/{}'.format(args.g), 'r')) \
@@ -216,7 +217,7 @@ def main():
     if args.stress:
         for n in range(2, 10):
             for dw in dyck(3, n):
-                for w in all_commas(dw, num_commas=2):
+                for w in all_commas(dw, num_commas=1):
                     print('Testing: ', w)
                     r = g.test_parse(w)
                     print(r)

@@ -8,24 +8,19 @@ import numpy as np
 tuple_to_char = {
     # 1-MCFG
     (0, 0): 'x',
-    (1, 0): 'z',
-    (2, 0): 'k',
-    (3, 0): 'm',
+    (1, 0): 'l',
     # 2-MCFG
     (0, 1): 'y',
-    (1, 1): 'w',
-    (2, 1): 'l',
-    (3, 1): 'n',
+    (1, 1): 'm',
     # 3-MCFG
-    (0, 2): 'o',
-    (1, 2): 'p',
-    (2, 2): 'q',
-    (3, 2): 'r',
+    (0, 2): 'z',
+    (1, 2): 'n',
     # 4-MCFG
-    (0, 3): 's',
-    (1, 3): 't',
-    (2, 3): 'u',
-    (3, 3): 'v',
+    (0, 3): 'w',
+    # (1, 3): 's',
+    # 5-MCFG
+    (0, 4): 'k',
+    # (1, 4): 't',
 }
 globals().update({value: key for key, value in tuple_to_char.items()})
 
@@ -100,10 +95,9 @@ def all_o(lhs, rhs, orders, splits=1, **symmetries):
     return [(lhs, rhs, order) for order in all_ordered(orders, splits=splits, **symmetries)]
 
 
-def all_c(lhs, rhs, left=[], right=[], orders=[], **symmetries):
-    return [(lhs, rhs, order) for order in all_ordered(orders, **symmetries)
-            if all(map(lambda l: l in order[0], left))
-            if all(map(lambda r: r in order[1], right))]
+def all_c(lhs, rhs, predicate=lambda x: True, orders=[], splits=1, **symmetries):
+    return [(lhs, rhs, order) for order in all_ordered(orders, splits=splits, **symmetries)
+            if predicate(order)]
 
 
 def all_nc(lhs, rhs, left=[], right=[], orders=[], **symmetries):
@@ -153,14 +147,34 @@ def r(rule, orders):
     conclusion, premises = parse(rule)
     return conclusion, premises, list(orders)
 
+def guess_dim(orders):
+    max_index = max(sum(
+        [ map(lambda e: e[1] if isinstance(e, tuple) else 0, order)
+          for order in orders ]
+        , []))
+    return max(max_index, 1)
 
 def O(rule, orders, splits=None, **kwargs):
-    if splits is None:
-        # TODO fix
-        max_index = max(sum([map(lambda e: e[1] if isinstance(e, tuple) else 0, order) for order in orders], []))
-        splits = max(max_index - 1, 1)
+    orders = list(orders)
+    splits = splits or guess_dim(orders)
     conclusion, premises = parse(rule)
-    return all_o(conclusion, premises, orders, splits=splits, **kwargs)
+    return all_o(conclusion, premises, orders=orders, splits=splits, **kwargs)
+
+def C(rule, orders, splits=None, **kwargs):
+    orders = list(orders)
+    if 'left' in kwargs or 'right' in kwargs:
+        return Clr(rule, orders, splits=splits, **kwargs)
+    else:
+        splits = splits or guess_dim(orders)
+        conclusion, premises = parse(rule)
+        return all_c(conclusion, premises, orders=orders, splits=splits, **kwargs)
+
+def Clr(rule, orders, splits=None, left=[], right=[]):
+    splits = splits or guess_dim(orders)
+    conclusion, premises = parse(rule)
+    return all_c(conclusion, premises, orders=orders, splits=splits,
+                 predicate=lambda o: all([l in o[0] for l in left]) and
+                                     all([r in o[1] for r in right]))
 
 def forall(domain, rule_func):
     ret = []
