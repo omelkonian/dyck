@@ -13,8 +13,6 @@ from itertools import permutations
 from MCFParser import *
 from .grammar_utils import *
 
-initial_symbol = 'S'
-
 ########################################################################################################################
 # 2017, Dr. Michael Moortgat, Utrecht University
 ########################################################################################################################
@@ -45,6 +43,10 @@ def dyck(k, n):
     sigma = ''.join([chr(97+i) for i in range(k)])  # a,b,c,... (k letters)
     return [sigma*n] if n < 2 else sum([dshuffle(sigma, w) for w in dyck(k, n-1)], [])
 
+def mix(k, n):
+    sigma = ''.join([chr(97+i) for i in range(k)])  # a,b,c,... (k letters)
+    return (word for word in permutations(sigma * n))
+
 
 ########################################################################################################################
 # 2017, Orestis Melkonian & Konstantinos Kogkalidis, Utrecht University
@@ -69,6 +71,13 @@ def rand_dyck(n):
             val['c'] += 1
     return ret
 
+
+#
+# Global constants
+#
+initial_symbol = 'S'
+language = 'dyck'
+languages = dict(dyck=dyck, mix=mix)
 
 #
 # Grammar class
@@ -108,7 +117,7 @@ class Grammar(object):
         print('{}\n'.format(min_parse))
 
     def test_n(self, n, range=(0.0, 100.0), grammar_id='', start_time=None, stats=False):
-        ws = dyck(3, n)
+        ws = languages[language](3, n)
         l = len(ws)
         start, end = map(lambda p: int(ceil(l * (p/100))), range)
         ws = ws[start:end]
@@ -164,8 +173,8 @@ def all_commas(w, num_commas=1):
         return [ w[:i] + '$' + w[i:] for i in range(len(w) + 1) ]
     elif num_commas == 2:
         return [ w[:i] + '$' + w[i:j] + '$' + w[j:]
-                 for i in range(len(w) + 1)
-                 for j in range(i, len(w) + 1) ]
+                 for i in range(1, len(w))
+                 for j in range(i + 1, len(w)) ]
     else:
         raise ValueError("all_commas does not support n > 3")
 
@@ -178,6 +187,7 @@ def main():
     parser.add_argument('-minp', type=str, help='show minimal parse of a word', nargs='?')
     parser.add_argument('-ps', type=str, help='multiple parses of a word', nargs='?')
     parser.add_argument('-g', type=str, help='grammar to use', default='triple_insertion')
+    parser.add_argument('--lang', type=str, help='which language to check', default='dyck', nargs='?')
     parser.add_argument('-i', type=str, help='initial symbol to use', default='S', nargs='?')
     parser.add_argument('--rules', help='print all rules', action='store_true')
     parser.add_argument('--serialize', help='serialize grammar to file', action='store_true')
@@ -190,10 +200,17 @@ def main():
     parser.add_argument('--stress', help='stress test given word', action='store_true')
     args = parser.parse_args()
 
+    # Comma stress testing
+    if args.stress or '$' in (args.w or ''):
+        args.i = '$W'
+
     # Set initial symbol
     global initial_symbol
     initial_symbol = args.i
-    # '$_W' if '$' in getattr(args, 'w', getattr(args, 'p', '')) else
+
+    # Change language (if required)
+    global language
+    language = args.lang
 
     # Load grammar
     g = pickle.load(open('serialized_grammars/{}'.format(args.g), 'r')) \
@@ -215,14 +232,15 @@ def main():
 
     # Stress-test
     if args.stress:
-        for n in range(2, 10):
-            for dw in dyck(3, n):
-                for w in all_commas(dw, num_commas=1):
-                    print('Testing: ', w)
-                    r = g.test_parse(w)
-                    print(r)
-                    if r == False:
-                        exit(0)
+        for dw in dyck(3, args.n):
+            for w in all_commas(dw, num_commas=2):
+                print('Testing: ', w)
+                r = g.test_parse(w)
+                print(r)
+                if r == False:
+                    print('*** STRESS FAILED for n = {}!'.format(args.n))
+                    exit(0)
+        print('*** STRESS COMPLETE for n = {}!'.format(args.n))
 
 
     if args.n is None and 'w' not in vars(args):

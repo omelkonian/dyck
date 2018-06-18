@@ -26,3 +26,4 @@ var/
 
 # Produced files
 **.pdf
+dyck/stats/
