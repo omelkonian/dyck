@@ -15,7 +15,7 @@ from ..grammar_utils import *
 # Completeness:
 # - n4 yes
 # - n5 yes
-# - n6 ?
+# - n6 yes
 # - n7 ?
 # - n8 ?
 #
@@ -28,8 +28,17 @@ from ..grammar_utils import *
 # - n7 no (aa$bb$acbaccbcabcabcabc)
 #
 def non_deleting_interleaving(o):
-  """ no empty tuple element (ie. utilize commas maximally) """
+  """ no empty tuple element (ie. utilize commas maximally)
+  PRO TIP: When running, listen to 'Charlemagne Palestine - Strumming Music'
+  """
   return all([len(x) > 0 for x in o])
+
+def non_deleting_interleaving2(o):
+  """ no empty tuple element (ie. utilize commas maximally)
+  PRO TIP: When running, listen to 'Charlemagne Palestine - Strumming Music'
+  """
+  return (all([len(x) > 0 for x in o]) and
+          x in o[0] and y in o[1] and z in o[2])
 
 # NB: fails miserably
 def equal_interleaving(o):
