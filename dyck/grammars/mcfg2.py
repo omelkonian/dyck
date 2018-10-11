@@ -42,8 +42,17 @@ mcfg2 = Grammar([
     r('S <- W', {(x, y)}),
     O('W', {(a, b, c)}),
     O('W <- W', {(x, y), (a, b, c)}),
-    O('W <- W, W', {(x, y), (l, m)}),
+    # O('W <- W, W', {(x, y), (l, m)}),
 ])
+
+# mcfg2 = Grammar([
+#     r('S <- W', {(x, y)}),
+#     O('A', {(a)}),
+#     O('B', {(b)}),
+#     O('C', {(c)}),
+#     O('W', {(a, b, c)}),
+#     O('W <- W, A, B, C', {(x, y), (l, m, q, w, r, t), (a, b, c)}),
+# ])
 
 mcfg22 = Grammar([
 
