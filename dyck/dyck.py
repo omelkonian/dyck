@@ -12,6 +12,7 @@ from itertools import permutations
 
 from MCFParser import *
 from .grammar_utils import *
+from .adhoc import *
 
 ########################################################################################################################
 # 2017, Dr. Michael Moortgat, Utrecht University
@@ -180,13 +181,14 @@ def all_commas(w, num_commas=1):
 
 def main():
     parser = argparse.ArgumentParser(description='Grammar utilities for multidimensional Dyck languages.')
+    parser.add_argument('-k', type=int, help='dimension', nargs='?', default=3)
     parser.add_argument('-n', type=int, help='number of "abc" occurences', nargs='?')
     parser.add_argument('-w', type=str, help='single word to check', nargs='?')
     parser.add_argument('-ws', type=str, help='file containing words to check', nargs='?')
     parser.add_argument('-p', type=str, help='single parse of a word', nargs='?')
     parser.add_argument('-minp', type=str, help='show minimal parse of a word', nargs='?')
     parser.add_argument('-ps', type=str, help='multiple parses of a word', nargs='?')
-    parser.add_argument('-g', type=str, help='grammar to use', default='triple_insertion')
+    parser.add_argument('-g', type=str, help='grammar to use', default='mcfg3')
     parser.add_argument('--lang', type=str, help='which language to check', default='dyck', nargs='?')
     parser.add_argument('-i', type=str, help='initial symbol to use', default='S', nargs='?')
     parser.add_argument('--rules', help='print all rules', action='store_true')
@@ -198,7 +200,36 @@ def main():
     parser.add_argument('--rand', help='generate random Dyck word', action='store_true')
     parser.add_argument('--stats', help='output in file', action='store_true')
     parser.add_argument('--stress', help='stress test given word', action='store_true')
+    parser.add_argument('--adhoc', help='adhoc', action='store_true')
     args = parser.parse_args()
+
+    # adhoc
+    from tqdm import tqdm
+    if args.adhoc:
+        if args.n:
+            for dw in tqdm(dyck(args.k, args.n)):
+              # print('Word: {}'.format(dw))
+              try:
+                collapsible(dw)
+              except RuntimeError:
+                print('NAAAAY', dw)
+                continue
+                # exit(0)
+            print('YAAAAAY')
+        elif args.w:
+            if 'a' not in args.w:
+                args.w = args.w.replace('b', 'a').replace('c', 'b')
+            if 'b' not in args.w:
+                args.w = args.w.replace('c', 'b')
+            try:
+                collapsible(args.w)
+            except RuntimeError:
+                print('NAAAAY', args.w)
+                exit(0)
+            print('YAAAAAY')
+        else:
+            print('adhoc requires -n <int> or -w <word>')
+        exit(0)
 
     # Comma stress testing
     if args.stress or '$' in (args.w or ''):
@@ -232,14 +263,14 @@ def main():
 
     # Stress-test
     if args.stress:
-        for dw in dyck(3, args.n):
+        for dw in tqdm(dyck(3, args.n)):
             for w in all_commas(dw, num_commas=2):
-                print('Testing: ', w)
+                # print('Testing: ', w)
                 r = g.test_parse(w)
-                print(r)
+                # print(r)
                 if r == False:
                     print('*** STRESS FAILED for n = {}!'.format(args.n))
-                    exit(0)
+                    # exit(0)
         print('*** STRESS COMPLETE for n = {}!'.format(args.n))
 
 
