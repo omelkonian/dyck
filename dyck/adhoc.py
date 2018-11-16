@@ -1,115 +1,31 @@
 from functools import reduce
 from itertools import permutations
-import networkx as nx
-from networkx.drawing.nx_pydot import write_dot
-
-"""
-(1) exists t. t `collapse` D2a /\\ t `collapse` D2c => ~(t `collapse` D3)
-   witness: abacbacbc
-(2) exists t. t `collapse` D3 => ~(t `collapse` D2a /\\ t `collapse` D2c)
-   witness: abababccc
-(3) forall w.
-      exists t.
-        t `collapse` D2a /\\ t `collapse` D2c => t `collapse` D3
-
-   witness: verifiable up to n=4
-
-(3) => (4) exists f.  f({t | t `collapse` D2a /\\ t `collapse` D2c})
-                        `collapse` D3
-"""
-
-def test(m1, m2):
-    (a1, b1, c1) = m1
-    (a2, b2, c2) = m2
-    c = collapse_matches(([a1], [b1], [c1]), ([a2], [b2], [c2]), 3)
-    # print('\t{}'.format(c))
-    if c:
-        # print(m1, m2)
-        (x, y, z) = c
-        if any(map(lambda x: not x, c)):
-            return True
-        return (a1 in x or a2 in x) and (b1 in y or b2 in y) and (c1 in z or c2 in z)
-    else:
-        return False
-
-
-
+import numpy as np
 
 def collapsible(dw):
     matches = cmp(dw)
-    for m1, m2 in [(m1, m2) for m1 in matches for m2 in matches]:
-        # print(m1, m2)
-        if test(m1, m2):
-            return
-
-    raise RuntimeError('Cannot parse with (x)')
-
-
-
-    dw_ab = dw.replace('c', '')
-    dw_bc = dw.replace('a', '')
-
-    ms = [matches, matches_ab, matches_bc] = map(cmp, [dw, dw_ab, dw_bc])
 
     # Numerify matches (e.g. [[4], [11], [12]] => m0==11)
-    d_init = { i + 1 : k for i, k in enumerate(matches) }
-    print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+    d_init = { i : k for i, k in enumerate(matches) }
+    # print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
     d_abc = { tupl(k) : i for i, k in d_init.items() }
-    d_ab = { tupl([x - len([y for y in dw[:x] if y == 'c']) for x in k[:2]]) : i
-             for k, i in d_abc.items() }
-    d_bc = { tupl([x - len([y for y in dw[:x] if y == 'a']) for x in k[1:]]) : i
-             for k, i in d_abc.items() }
-    print('Match ABC: {}'.format(d_abc))
-    print('Match AB: {}'.format(d_ab))
-    print('Match BC: {}'.format(d_bc))
 
-    perms = [ list(permutations(sanitize_matches(x)))
-              for x in ms ]
     ret = False
-    trees = []
-    trees_ab = []
-    trees_bc = []
-    for o, order in enumerate(perms[0]):
-        print('^^^^^^^^^^^^^^^^^^ {} ^^^^^^^^^^^^^^^^^^^'.format(map(lambda x: d_abc[tupl(x)], order)))
-        # Analyze dw, dw_ab, dw_bc
-        trees0 = analyze(dw, o, order, d_abc)
-        if trees0:
+    order = pick_grandiose(list(permutations(sanitize_matches(matches))))
+    # order = list(permutations(sanitize_matches(matches)))
+    for o in order:
+        # print('{}'.format(map(lambda x: d_abc[tupl(x)], o)))
+        if analyze(dw, o, d_abc):
             ret = True
-        trees.extend(trees0)
-        trees_ab.extend(analyze(dw_ab, o, perms[1][o], d_ab))
-        trees_bc.extend(analyze(dw_bc, o, perms[2][o], d_bc))
+            # return True
 
-    # Checking equivalence
-    inter = set(trees_ab).intersection(set(trees_bc))
-
-
-    # rem = set(trees).difference(inter)
-    # if not rem:
-
-    # if inter.issubset(set(trees)):
-
-    if inter.intersection(set(trees)):
-        pass
-        # print('YIHHAAAAAAA')
-    else:
-        print('NIHHHAAAAAA: {}'.format(dw))
-        print('Inter: {}'.format(inter))
-        print('Trees: {}'.format(trees))
-        # print(rem)
-        # print(inter.difference(set(trees)))
-
-        exit(0)
-
-    if not ret:
+    if ret == False:
         raise RuntimeError('Cannot parse with (x)')
-
-# def sort_permutations(ps):
-#     return sorted(ps, key=lambda x: #int# )
 
 def sanitize_matches(ms):
     return map(lambda m: map(lambda x: range(x, x+1), m), ms)
 
-def analyze(dw, o, order, d):
+def analyze(dw, order, d):
     def pp_order(order):
         return map(pp_match, order)
     def pp_match(ms):
@@ -135,22 +51,17 @@ def analyze(dw, o, order, d):
 
     dimension = len(set(dw))
     n = len(dw)
-    trees = []
+    # trees = []
     for tree, res in nd_fold(lambda x, y: collapse_matches(x, y, dimension), order):
         if res is None:
             continue
         if concat(res) == range(n):
-            trees.append(tree) # slow
-            # return True # fast
+            # trees.append(tree) # slow
+            print(pp_tree0(tree))
+            return True # fast
 
-    # Render in DOT
-    # g = nx.DiGraph()
-    # for i, t in enumerate(trees):
-    #     print('\t{}'.format(pp_tree0(t)))
-    #     pp_tree(t, g, str(i + 1))
-    # write_dot(g, '{}{}.dot'.format(dw, str(o)))
-
-    return map(pp_tree0, trees)
+    return False
+    # return map(pp_tree0, trees)
 
 def tupl(xs):
     if isinstance(xs, list) and len(xs) == 1:
@@ -237,35 +148,69 @@ def fold(f, t):
 def pairs(xs):
     return zip(xs, xs[1:])
 
+def pick_grandiose(ms):
 
-# for order in pick_grandiose(matches):
-        # if invalid(order):
-        #     continue
-        # if incompatible(order):
-            # print('INCOMPAT')
-            # continue
+    # Calculate scores
+    scores = np.zeros([len(ms[0]), len(ms[0])])
+    for (i, m1), (j, m2) in pairs(list(enumerate(ms[0]))):
+        w = count_touch(m1, m2)
+        scores[i, j] = float(w)
+        scores[j, i] = float(w)
 
-# def pick_grandiose(matches):
-#     xs = sorted(permutations(matches), key = continuous, reverse = True)
-#     ma = continuous(xs[0])
-#     return [ x for x in xs if continuous(x) == ma]
+    # Normalize columns
+    scores /= scores.sum(axis=0)
 
-# def continuous(match):
-#     xs = map(lambda x: collapse_matches(x[0], x[1]) is None, pairs(match))
-#     try:
-#         i = xs.index(None)
-#         return len(xs[:i])
-#     except  :
-#         return len(xs)
+    mx, best = (0, [])
+    for m in ms:
+        def index(xx):
+            return [ i for i, ms0 in enumerate(ms[0])
+                       if xx == ms0][0]
 
-# def incompatible(order):
-#     # bs = map(lambda x: collapse_matches(x[0], x[1]) is None, pairs(order))
-#     # return any(bs)
-#     return collapse_matches(order[0], order[1]) is None
+        sc = sum(map(
+            lambda xy:
+                max( scores[index(xy[0]), index(xy[1])]
+                   , scores[index(xy[1]), index(xy[0])])
+            , pairs(m)))
+
+        # Pick most 'fitting'
+        if sc == mx:
+            best.append(m)
+        elif sc > mx:
+            best = [m]
+            mx = sc
+
+    assert best != []
+    from pprint import pprint
+    pprint(best)
+    return best
+    # return pick_grandiose0(ms)
 
 
-# def invalid(order):
-#     return False
-    # aa = map(lambda x: x[0], order)
-    # cc = map(lambda x: -x[2], order)
-    # return (sorted(aa) != aa) and (sorted(cc) != cc)
+def pick_grandiose0(ms):
+    res = zip(ms, map(score, ms))
+    mx = max(res, key = lambda x: x[1])
+
+    mxs = [r[0] for r in res if r[1] == mx[1]]
+    # if len(mxs) > 1:
+    #     print('MULTIPLE!!!', mxs)
+
+    return mxs
+
+
+    [mx, best] = 0, None
+    for m in ms:
+        s = score(m)
+        if s > mx:
+            mx = s
+            best = m
+    return best
+
+def score(m):
+    return sum(map(lambda xy: count_touch(xy[0], xy[1]), pairs(m)))
+
+def count_touch(surface_match1, surface_match2):
+    ([x], [y], [z]) = surface_match1
+    ([k], [l], [m]) = surface_match2
+    return sum([ (1 if abs(xx-kk) == 1 else 0)
+                 for xx in [x, y, z]
+                 for kk in [k, l, m] ])
