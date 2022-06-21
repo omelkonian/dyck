@@ -21,6 +21,6 @@ setup(
     platforms='any',
     python_requires='<3',
     install_requires=[
-        'numpy==1.14.0',
+        'numpy==1.22.0',
     ]
 )
